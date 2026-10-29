@@ -35,11 +35,13 @@ class LegalQuestionRequest(BaseModel):
 class LegalQuestionResponse(BaseModel):
     message: str
     status: str
+    domain: str
 
 
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
 
 
 @app.post(
@@ -58,11 +60,66 @@ def submit_legal_question(request: LegalQuestionRequest):
     if client is None:
         raise HTTPException(
             status_code=503,
-            detail="Grok API key is not configured.",
+            detail="Groq API key is not configured.",
         )
 
-    prompt = f"""
+    try:
+        # First classify the question into a legal domain.
+        classification = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Classify the user's question under Indian law. "
+                        "Return exactly one label from this list: "
+                        "property_tenancy, criminal_law, family_law, "
+                        "consumer_law, employment_law, contract_law, "
+                        "constitutional_law, cyber_law, other, unsupported. "
+                        "Use unsupported only if the question is clearly "
+                        "unrelated to legal matters. Return only the label."
+                    ),
+                },
+                {"role": "user", "content": question},
+            ],
+            temperature=0,
+        )
+
+        domain = (
+            classification.choices[0].message.content or ""
+        ).strip().lower()
+
+        allowed_domains = {
+            "property_tenancy",
+            "criminal_law",
+            "family_law",
+            "consumer_law",
+            "employment_law",
+            "contract_law",
+            "constitutional_law",
+            "cyber_law",
+            "other",
+            "unsupported",
+        }
+
+        if domain not in allowed_domains:
+            domain = "other"
+
+        if domain == "unsupported":
+            return LegalQuestionResponse(
+                message=(
+                    "I can help with questions related to Indian law. "
+                    "Please ask a legal question about an Indian legal issue."
+                ),
+                status="unsupported",
+                domain=domain,
+            )
+
+        # Generate an answer after classification.
+        prompt = f"""
 You are an informational assistant for Indian law.
+
+The question has been classified under: {domain}.
 
 Answer in clear, simple language.
 Explain general legal concepts and practical next steps.
@@ -76,20 +133,20 @@ User's question:
 {question}
 """
 
-    try:
         response = client.chat.completions.create(
-            model="openai/gpt-oss-20b" ,
+            model="openai/gpt-oss-20b",
             messages=[
                 {
                     "role": "system",
                     "content": (
-                        "You are an informational assistant for Indian law. "
+                        "You provide general information about Indian law. "
                         "Do not invent legal citations or claim unverified facts."
                     ),
                 },
                 {"role": "user", "content": prompt},
             ],
         )
+
         answer = response.choices[0].message.content
 
         if not answer:
@@ -101,6 +158,7 @@ User's question:
         return LegalQuestionResponse(
             message=answer,
             status="answered",
+            domain=domain,
         )
 
     except HTTPException:
