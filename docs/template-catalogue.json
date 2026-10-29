@@ -1,0 +1,43 @@
+
+{
+  "templates": [
+    {
+      "id": "TPL-001",
+      "name": "Rental Agreement",
+      "category": "Property",
+      "description": "Sample rental arrangement template.",
+      "keywords": ["rent", "tenant", "landlord"],
+      "required_fields": [
+        "landlord_name",
+        "tenant_name",
+        "property_address",
+        "monthly_rent"
+      ]
+    },
+    {
+      "id": "TPL-002",
+      "name": "General Affidavit",
+      "category": "General",
+      "description": "Sample structure for a declaration of facts.",
+      "keywords": ["affidavit", "declaration"],
+      "required_fields": [
+        "declarant_name",
+        "declarant_address",
+        "declaration_text"
+      ]
+    },
+    {
+      "id": "TPL-003",
+      "name": "Legal Notice",
+      "category": "Legal Correspondence",
+      "description": "Sample structure for organizing notice details.",
+      "keywords": ["notice", "sender", "recipient"],
+      "required_fields": [
+        "sender_name",
+        "recipient_name",
+        "notice_subject",
+        "notice_details"
+      ]
+    }
+  ]
+}
