@@ -1,0 +1,108 @@
+Test Case ID,Name of Module,Test case description,Pre-conditions,Test Steps,Test data,Expected Results,Actual Result,Test Result
+UT-01-01,Chat (chat_api.py),Unauthenticated request is refused,No token,POST /api/chat/ask without Authorization header,question='How to file an FIR?',HTTP 401,Behaved as expected (automated run),Pass
+UT-01-02,Chat (chat_api.py),"In-scope question returns answer, source and disclaimer",Logged in; KB seeded,POST /api/chat/ask,My landlord will not return my security deposit...,"in_scope=true, domain=tenancy, sources non-empty, disclaimer present",Behaved as expected (automated run),Pass
+UT-01-03,Chat (chat_api.py),Out-of-scope question gets fixed message,Logged in,POST /api/chat/ask,What is the best recipe for chocolate cake?,"in_scope=false, out-of-scope message, no sources, disclaimer present",Behaved as expected (automated run),Pass
+UT-01-04,Chat (chat_api.py),Too-short query rejected (invalid input),Logged in,POST /api/chat/ask,'hi',HTTP 422 with length message,Behaved as expected (automated run),Pass
+UT-01-05,Chat (chat_api.py),Too-long query rejected (invalid input),Logged in,POST /api/chat/ask,1600-character string,HTTP 422,Behaved as expected (automated run),Pass
+UT-01-06,Chat (chat_api.py),Symbol-only query rejected (invalid input),Logged in,POST /api/chat/ask,'?????!!!!!',HTTP 422 'enter your question in words',Behaved as expected (automated run),Pass
+UT-01-07,Chat (chat_api.py),Conversation history stored and listed,Logged in,Ask a question; GET /chat/conversations; GET /chat/conversations/{id},refund question,1 conversation with user + assistant messages,Behaved as expected (automated run),Pass
+UT-01-08,Chat (chat_api.py),Conversation can be deleted by owner,Existing conversation,DELETE /chat/conversations/{id}; GET it again,-,204 then 404,Behaved as expected (automated run),Pass
+UT-02-01,Classifier (classifier.py),Tenancy query classified,-,classify(query),landlord / security deposit,'tenancy',Behaved as expected (automated run),Pass
+UT-02-02,Classifier (classifier.py),Consumer query classified,-,classify(query),seller refused refund defective phone,'consumer',Behaved as expected (automated run),Pass
+UT-02-03,Classifier (classifier.py),Family query classified,-,classify(query),divorce by mutual consent,'family',Behaved as expected (automated run),Pass
+UT-02-04,Classifier (classifier.py),Employment query classified,-,classify(query),employer has not paid salary,'employment',Behaved as expected (automated run),Pass
+UT-02-05,Classifier (classifier.py),Cyber query classified,-,classify(query),UPI scam,'cyber',Behaved as expected (automated run),Pass
+UT-02-06,Classifier (classifier.py),Criminal-procedure query classified,-,classify(query),FIR when police refuse,'criminal_procedure',Behaved as expected (automated run),Pass
+UT-02-07,Classifier (classifier.py),Unsupported query returns None,-,classify(query),What is the best pizza in town,None,Behaved as expected (automated run),Pass
+UT-02-08,Classifier (classifier.py),Whole-word matching (no false positive on 'pfizer'),-,domain_scores('the pfizer vaccine'),pfizer,employment score = 0,Behaved as expected (automated run),Pass
+UT-03-01,Retrieval (retrieval.py),Stop-words removed in tokenisation,-,tokenize('How do I file the FIR?'),-,"['file','fir']",Behaved as expected (automated run),Pass
+UT-03-02,Retrieval (retrieval.py),Relevant entry retrieved,KB seeded,"retrieve(q, 'criminal_procedure')",file FIR with police,FIR entry returned,Behaved as expected (automated run),Pass
+UT-03-03,Retrieval (retrieval.py),Retrieval limited to the classified domain,KB seeded,"retrieve('file FIR police','consumer')",-,all results have domain=consumer,Behaved as expected (automated run),Pass
+UT-03-04,Retrieval (retrieval.py),No match returns empty list,KB seeded,"retrieve('zzzz qqqq','tenancy')",gibberish,[],Behaved as expected (automated run),Pass
+UT-03-05,Retrieval (retrieval.py),Stop-word-only query returns empty list,-,"retrieve('the and of', ...)",-,[],Behaved as expected (automated run),Pass
+UT-03-06,Retrieval (retrieval.py),Result limit respected,KB seeded,"retrieve(..., limit=2)",arrest police custody bail fir,<= 2 results,Behaved as expected (automated run),Pass
+UT-03-07,Retrieval (retrieval.py),Case-insensitive matching,KB seeded,retrieve(uppercase query),FILE AN FIR AT THE POLICE STATION,results returned,Behaved as expected (automated run),Pass
+UT-03-08,Retrieval (retrieval.py),Best match ranked first,KB seeded,retrieve(q),how to file fir police station zero fir,procedure entry first,Behaved as expected (automated run),Pass
+UT-04-01,Generation (llm_service.py),Safety filter removes guarantee / lawyer claims,-,enforce_safety(text),"'You will definitely win. I guarantee it, as your lawyer.'",phrases removed,Behaved as expected (automated run),Pass
+UT-04-02,Generation (llm_service.py),Clean text is unchanged,-,enforce_safety(text),neutral sentence,identical text,Behaved as expected (automated run),Pass
+UT-04-03,Generation (llm_service.py),Fallback answer built only from retrieved entries,KB seeded,fallback_answer([entry]),-,entry title in answer,Behaved as expected (automated run),Pass
+UT-04-04,Generation (llm_service.py),Provider failure degrades gracefully,LLM key set; provider raises,generate_answer(...),-,fallback answer returned,Behaved as expected (automated run),Pass
+UT-04-05,Generation (llm_service.py),LLM output is sanitised,LLM returns unsafe text,generate_answer(...),'I guarantee you will win',no 'guarantee' in output,Behaved as expected (automated run),Pass
+UT-04-06,Generation (llm_service.py),"Prompt contains reference material, history and question",-,build_prompt(...),-,all three present,Behaved as expected (automated run),Pass
+UT-04-07,Generation (llm_service.py),Provider response parsed,httpx mocked,_call_llm(...),two text blocks,'hello world',Behaved as expected (automated run),Pass
+UT-04-08,Generation (llm_service.py),Bad LLM JSON in document analysis falls back to heuristic,LLM returns non-JSON,analyze_document(text),-,heuristic summary returned,Behaved as expected (automated run),Pass
+UT-05-01,UI Renderer (response_view.jsx),Answer text displayed,"App running, logged in",Ask a question,any in-scope question,Answer bubble visible,Pending manual execution,Not run
+UT-05-02,UI Renderer (response_view.jsx),Disclaimer shown under every answer,App running,Ask in-scope and out-of-scope questions,-,Disclaimer visible in both,Pending manual execution,Not run
+UT-05-03,UI Renderer (response_view.jsx),Numbered steps shown for procedure answers,App running,Ask 'How do I file an FIR?',-,Ordered list of steps,Pending manual execution,Not run
+UT-05-04,UI Renderer (response_view.jsx),Sources list shown,App running,Ask a tenancy question,-,Sources list visible,Pending manual execution,Not run
+UT-06-01,Case law (case_law_api.py),Search by keyword,Logged in,GET /case-law?q=privacy,privacy,Puttaswamy case listed,Behaved as expected (automated run),Pass
+UT-06-02,Case law (case_law_api.py),Search by citation,Logged in,GET /case-law?citation=(2015) 5 SCC 1,(2015) 5 SCC 1,Shreya Singhal only,Behaved as expected (automated run),Pass
+UT-06-03,Case law (case_law_api.py),Search by jurisdiction,Logged in,GET /case-law?jurisdiction=india,india,> 5 results,Behaved as expected (automated run),Pass
+UT-06-04,Case law (case_law_api.py),Unknown jurisdiction returns empty,Logged in,GET /case-law?jurisdiction=Atlantis,Atlantis,[],Behaved as expected (automated run),Pass
+UT-06-05,Case law (case_law_api.py),Only case entries returned (not procedures),Logged in,GET /case-law,-,every row has a citation,Behaved as expected (automated run),Pass
+UT-06-06,Case law (case_law_api.py),SQL wildcard characters escaped,Logged in,GET /case-law?q=%,%,[],Behaved as expected (automated run),Pass
+UT-06-07,Case law (case_law_api.py),Authentication required,No token,GET /case-law,-,HTTP 401,Behaved as expected (automated run),Pass
+UT-06-08,Case law (case_law_api.py),Invalid limit rejected,Logged in,GET /case-law?limit=0,0,HTTP 422,Behaved as expected (automated run),Pass
+UT-07-01,Templates (template_api.py),"Placeholders extracted in order, no duplicates",-,placeholders(text),'Hi {{a}} and {{ b }} and {{a}}',"['a','b']",Behaved as expected (automated run),Pass
+UT-07-02,Templates (template_api.py),Placeholders substituted,-,fill_template,name=' Ravi ','Dear Ravi',Behaved as expected (automated run),Pass
+UT-07-03,Templates (template_api.py),Missing value raises error naming the field,-,fill_template,city missing,ValueError mentions 'city',Behaved as expected (automated run),Pass
+UT-07-04,Templates (template_api.py),List and search templates,Logged in,"GET /templates, GET /templates?q=salary",salary,>=5 templates; 1 match,Behaved as expected (automated run),Pass
+UT-07-05,Templates (template_api.py),Download filled template as .txt,Logged in,POST /templates/{id}/fill,all RTI fields,"200, attachment, no '{{' left",Behaved as expected (automated run),Pass
+UT-07-06,Templates (template_api.py),Download filled template as .docx,Logged in,POST /templates/{id}/fill?fmt=docx,all RTI fields,valid .docx with paragraphs,Behaved as expected (automated run),Pass
+UT-07-07,Templates (template_api.py),Incomplete form rejected,Logged in,POST fill with only 'date',partial values,HTTP 422,Behaved as expected (automated run),Pass
+UT-07-08,Templates (template_api.py),Unsupported download format rejected,Logged in,POST fill?fmt=exe,fmt=exe,HTTP 422,Behaved as expected (automated run),Pass
+UT-07-09,Templates (template_api.py),Unknown template id,Logged in,GET /templates/9999,9999,HTTP 404,Behaved as expected (automated run),Pass
+UT-08-01,Documents (doc_analysis.py),Upload TXT -> summary + clauses,Logged in,POST /documents,contract.txt,"201, summary and key clauses",Behaved as expected (automated run),Pass
+UT-08-02,Documents (doc_analysis.py),Upload PDF,Logged in,POST /documents,a.pdf,"201, file_type PDF",Behaved as expected (automated run),Pass
+UT-08-03,Documents (doc_analysis.py),Upload DOCX,Logged in,POST /documents,a.docx,"201, file_type DOCX",Behaved as expected (automated run),Pass
+UT-08-04,Documents (doc_analysis.py),Unsupported extension rejected,Logged in,POST /documents,evil.exe,HTTP 422,Behaved as expected (automated run),Pass
+UT-08-05,Documents (doc_analysis.py),Empty file rejected,Logged in,POST /documents,0-byte txt,HTTP 422,Behaved as expected (automated run),Pass
+UT-08-06,Documents (doc_analysis.py),Oversize file rejected,Limit lowered to 100 B,POST /documents,500-byte file,HTTP 422,Behaved as expected (automated run),Pass
+UT-08-07,Documents (doc_analysis.py),Extension/content mismatch rejected,Logged in,POST /documents,fake.pdf with text content,HTTP 422,Behaved as expected (automated run),Pass
+UT-08-08,Documents (doc_analysis.py),Corrupt PDF handled,Logged in,POST /documents,'%PDF-1.4 garbage',"HTTP 422, no crash",Behaved as expected (automated run),Pass
+UT-08-09,Documents (doc_analysis.py),Path-traversal filename is harmless,Logged in,POST /documents,../../etc/passwd.txt,stored under server-chosen name,Behaved as expected (automated run),Pass
+UT-08-10,Documents (doc_analysis.py),Documents private to owner,Two users,User B GET/DELETE user A's doc,-,404; B's list empty,Behaved as expected (automated run),Pass
+UT-09-01,Feedback (feedback_api.py),Rating + comment accepted,Has response,POST /feedback,rating 4,201,Behaved as expected (automated run),Pass
+UT-09-02,Feedback (feedback_api.py),Error report accepted,Has response,POST /feedback,is_error_report=true,201,Behaved as expected (automated run),Pass
+UT-09-03,Feedback (feedback_api.py),Empty feedback rejected,Has response,POST /feedback,no rating/comment,422,Behaved as expected (automated run),Pass
+UT-09-04,Feedback (feedback_api.py),Rating out of range rejected,Has response,POST /feedback,rating 9,422,Behaved as expected (automated run),Pass
+UT-09-05,Feedback (feedback_api.py),Duplicate feedback refused,Feedback exists,POST /feedback again,-,409,Behaved as expected (automated run),Pass
+UT-09-06,Feedback (feedback_api.py),Cannot rate another user's response,Two users,User B posts feedback for A's message,-,404,Behaved as expected (automated run),Pass
+UT-09-07,Feedback (feedback_api.py),Unknown message id,Logged in,POST /feedback,message_id 99999,404,Behaved as expected (automated run),Pass
+UT-09-08,Feedback (feedback_api.py),Authentication required,No token,POST /feedback,-,401,Behaved as expected (automated run),Pass
+UT-10-01,Admin (admin_kb.py),Create/update/delete knowledge entry,Admin logged in,"POST, PUT, DELETE /admin/references",sample entry,201/200/204; 404 on re-delete; change visible in search,Behaved as expected (automated run),Pass
+UT-10-02,Admin (admin_kb.py),New entry used by chat,Admin adds procedure,Ask related question as user,widget refund,Entry cited as source,Behaved as expected (automated run),Pass
+UT-10-03,Admin (admin_kb.py),Invalid domain/type rejected,Admin,POST /admin/references,domain=astrology,422,Behaved as expected (automated run),Pass
+UT-10-04,Admin (admin_kb.py),Standard user blocked from admin API,User logged in,POST /admin/references and /admin/templates,-,403,Behaved as expected (automated run),Pass
+UT-10-05,Admin (admin_kb.py),Template CRUD,Admin,"POST, PUT, DELETE /admin/templates",sample template,create/edit/delete work,Behaved as expected (automated run),Pass
+UT-10-06,Admin (admin_kb.py),Review and resolve feedback,Error report exists,GET /admin/feedback; PUT resolve,-,listed then resolved,Behaved as expected (automated run),Pass
+UT-10-07,Admin (admin_kb.py),"User management (role change, delete)",Admin,"PUT role, DELETE user",role=admin / wizard,200 / 422 / 204,Behaved as expected (automated run),Pass
+UT-10-08,Admin (admin_kb.py),Admin cannot demote/delete self,Admin,PUT own role=user; DELETE self,-,400,Behaved as expected (automated run),Pass
+UT-11-01,Auth (auth_api.py),Register then login,-,"POST /auth/register, /auth/login",carol / Passw0rd1,201 role=user; 200 token,Behaved as expected (automated run),Pass
+UT-11-02,Auth (security.py),Password stored hashed,User registered,Inspect DB row,-,"bcrypt hash, not plaintext",Behaved as expected (automated run),Pass
+UT-11-03,Auth (auth_api.py),Weak passwords rejected,-,POST /auth/register,"short1, allletters, 12345678",422,Behaved as expected (automated run),Pass
+UT-11-04,Auth (auth_api.py),Invalid username rejected,-,POST /auth/register,'a b',422,Behaved as expected (automated run),Pass
+UT-11-05,Auth (auth_api.py),Duplicate username rejected,alice exists,POST /auth/register,alice,409,Behaved as expected (automated run),Pass
+UT-11-06,Auth (auth_api.py),Wrong password rejected,alice exists,POST /auth/login,wrong password,401,Behaved as expected (automated run),Pass
+UT-11-07,Auth (security.py),Account locks after 5 failures,alice exists,5 bad logins then good login,-,429,Behaved as expected (automated run),Pass
+UT-11-08,Auth (deps.py),Expired token rejected (session timeout),-,GET /auth/me with expired JWT,-,401,Behaved as expected (automated run),Pass
+UT-11-09,Auth (deps.py),RBAC: user blocked from admin API,User logged in,GET /admin/users,-,403,Behaved as expected (automated run),Pass
+UT-11-10,Auth (auth_api.py),Right to erasure,User has chats,DELETE /auth/me/data,-,204; no conversations,Behaved as expected (automated run),Pass
+IT-01,Chat + Retrieval + Classifier,Follow-up inherits previous domain (FR-10),Logged in,"Ask tenancy question, then 'How many days do I get?' in same conversation",-,second answer domain = tenancy,Behaved as expected (automated run),Pass
+IT-02,Chat + Retrieval,Procedure guidance returns ordered steps (FR-08),Logged in,Ask how to file an FIR,-,>= 3 steps,Behaved as expected (automated run),Pass
+IT-03,Admin + Retrieval + Chat,Admin-added entry is used in answers (FR-16),Admin + user,Admin adds entry; user asks,-,entry cited,Behaved as expected (automated run),Pass
+IT-04,Auth + Chat,Deleting own data clears conversations,User has chats,DELETE /auth/me/data; list conversations,-,[],Behaved as expected (automated run),Pass
+IT-05,Documents + Auth,Cross-user document isolation,Two users,B reads/deletes A's document,-,404,Behaved as expected (automated run),Pass
+IT-06,Feedback + Admin,Error report visible to admin and resolvable,User reports,Admin lists and resolves,-,report shown then resolved,Behaved as expected (automated run),Pass
+IT-07,Chat + Auth,Users cannot read or continue each other's conversations,Two users,B opens A's conversation,-,404,Behaved as expected (automated run),Pass
+IT-08,Chat + Generation,Unavailable LLM does not break the answer pipeline,LLM key set; provider down,Ask a question,-,fallback answer returned,Behaved as expected (automated run),Pass
+ST-01,System,"End-to-end: register, login, ask, see sourced answer + disclaimer",Stack running via docker compose,Open UI; register; login; ask a tenancy question,-,"Answer, sources and disclaimer displayed",Pending manual execution,Not run
+ST-02,System,Out-of-scope handling in UI,Logged in,Ask about cooking,-,"Out-of-scope message, no invented answer",Pending manual execution,Not run
+ST-03,System,Procedure guidance in UI,Logged in,Ask 'How do I file an FIR?',-,Step list displayed,Pending manual execution,Not run
+ST-04,System,Case law search in UI,Logged in,Open Case law tab; search 'privacy',-,Puttaswamy listed,Pending manual execution,Not run
+ST-05,System,Template fill and download,Logged in,Templates tab; open RTI; fill; download .docx,-,File downloads with values substituted,Pending manual execution,Not run
+ST-06,System,Upload and analyse a document,Logged in,My documents tab; upload sample PDF,-,Summary and key clauses shown,Pending manual execution,Not run
+ST-07,System,Feedback from UI reaches admin,User + admin,Click Report error; admin opens Feedback tab,-,Report visible,Pending manual execution,Not run
+ST-08,System,Admin KB edit reflected in answers,Admin,Add procedure in Admin tab; ask related question,-,New entry cited,Pending manual execution,Not run
+ST-09,System,Performance: 90% of queries answered within 5 s (NFR 6.1),Stack running,Send 20 questions; time them,-,>= 18 within 5 s,Pending manual execution,Not run
+ST-10,System,Session expires after timeout (NFR 6.3),Logged in,Wait > 30 min; use app,-,Redirected to login,Pending manual execution,Not run

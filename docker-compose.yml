@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: legal
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-legalpass}
+      POSTGRES_DB: legal
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U legal"]
+      interval: 5s
+      retries: 10
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://legal:${POSTGRES_PASSWORD:-legalpass}@db:5432/legal
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      CORS_ORIGINS: http://localhost:8080
+    depends_on:
+      db: { condition: service_healthy }
+    volumes: [uploads:/srv/uploads]
+  frontend:
+    build: ./frontend
+    ports: ["8080:80"]
+    depends_on: [backend]
+volumes:
+  pgdata:
+  uploads:

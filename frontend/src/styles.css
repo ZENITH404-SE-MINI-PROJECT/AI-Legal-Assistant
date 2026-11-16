@@ -1,0 +1,22 @@
+:root { --bg:#f6f7f9; --fg:#1b1f24; --card:#fff; --accent:#1f4e8c; --muted:#5b6570; --err:#b3261e; }
+@media (prefers-color-scheme: dark) { :root { --bg:#14171a; --fg:#e8eaed; --card:#1d2227; --accent:#6ea8fe; --muted:#9aa4af; --err:#f28b82; } }
+* { box-sizing: border-box; }
+body { margin:0; font-family:system-ui,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--fg); }
+main { max-width: 860px; margin: 0 auto; padding: 16px; }
+header, .row, nav { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+.row, nav { justify-content:flex-start; margin:8px 0; }
+button { background:var(--accent); color:#fff; border:0; border-radius:6px; padding:8px 12px; cursor:pointer; }
+button:disabled { opacity:.5; cursor:default; } nav button { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+nav button.active { background:var(--accent); color:#fff; }
+input, textarea, select { padding:8px; border-radius:6px; border:1px solid var(--muted); background:var(--card); color:var(--fg); flex:1; min-width:140px; width:100%; }
+.row input { width:auto; }
+label { display:block; margin:8px 0; } .card { background:var(--card); border-radius:8px; padding:12px; margin:10px 0; display:flex; flex-direction:column; gap:6px; }
+.card.clickable { cursor:pointer; } .login { max-width:360px; margin:40px auto; }
+.chat { min-height:320px; max-height:55vh; overflow:auto; display:flex; flex-direction:column; gap:10px; padding:8px; }
+.bubble { padding:10px 12px; border-radius:10px; max-width:88%; } .bubble.user { background:var(--accent); color:#fff; align-self:flex-end; }
+.bubble.assistant { background:var(--card); align-self:flex-start; }
+.disclaimer { font-size:.8rem; color:var(--muted); border-top:1px solid var(--muted); padding-top:6px; }
+.banner { background:#fff3cd; color:#5c4400; padding:6px 10px; border-radius:6px; font-size:.85rem; }
+.error { color:var(--err); } .hint { color:var(--muted); } .sources ul { margin:4px 0; padding-left:18px; font-size:.9rem; }
+.fb button { background:transparent; color:var(--accent); border:1px solid var(--accent); margin-right:6px; padding:3px 8px; }
+footer { margin-top:24px; text-align:center; }

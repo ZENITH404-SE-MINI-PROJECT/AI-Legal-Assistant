@@ -1,0 +1,25 @@
+__pycache__/
+*.pyc
+.env
+*.db
+uploads/
+node_modules/
+dist/
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# Python virtual environments
+.venv/
+venv/
+
+# Environment variables
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
